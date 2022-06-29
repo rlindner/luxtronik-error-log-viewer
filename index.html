@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+	<title>Luxtronik error log viewer</title>
+	<meta charset="utf-8" />
+	<style>
+		table {
+			border-collapse: collapse;
+			border-width: 1px;
+		}
+
+		th,
+		td {
+			border: solid 1px #000000;
+			padding: 2px 6px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Luxtronik error log viewer</h1>
+	<input type="file" id="errorlog">
+	<br>
+
+	<table id="table" style="visibility: hidden">
+		<tr>
+			<th>Datum</th>
+			<th>Fehlercode</th>
+		</tr>
+	</table>
+
+	<script>
+		const errorCodeMapping = {
+			"701": "Niederdruckstörung",
+			"702": "Niederdrucksperre",
+			"703": "Frostschutz",
+			"704": "Heissgasstörung",
+			"705": "Motorschutz VEN",
+			"706": "Motorschutz BSUP",
+			"707": "Codierung WP",
+			"708": "Fühler Rücklauf",
+			"709": "Fühler Vorlauf",
+			"710": "Fühler Heissgas",
+			"711": "Fühler Aussentemp.",
+			"712": "Fühler Warmwasser",
+			"713": "Fühler WQ-Ein",
+			"714": "Heissgas WW",
+			"715": "Hochdruck-Abschalt.",
+			"716": "Hochdruckstörung",
+			"717": "Durchfluss-WQ",
+			"718": "Max. Aussentemp.",
+			"719": "Min. Aussentemp.",
+			"720": "WQ-Temperatur",
+			"721": "Niederdruckabschaltung",
+			"722": "Tempdiff Heizwasser",
+			"723": "Tempdiff Warmw.",
+			"724": "Tempdiff Abtauen",
+			"725": "Anlagefehler WW",
+			"726": "Fühler Mischkreis 1",
+			"727": "Soledruck",
+			"728": "Fühler WQ-Aus",
+			"729": "Drehfeldfehler",
+			"730": "Leistung Ausheizen",
+			"732": "Störung Kühlung",
+			"733": "Störung Anode",
+			"734": "Störung Anode",
+			"735": "Fühler Ext. En",
+			"736": "Fühler Solarkollektor",
+			"737": "Fühler Solarspeicher",
+			"738": "Fühler Mischkreis2",
+			"750": "Fühler Rücklauf extern",
+			"751": "Phasenüberwachungsfehler",
+			"752": "Phasenüberwachungs / Durchflussfehler",
+			"755": "Verbindung zu Slave verloren",
+			"756": "Verbindung zu Master verloren",
+			"757": "ND-Störung bei WW- Gerät",
+			"758": "Störung Abtauung",
+			"759": "Meldung TDI",
+			"760": "Störung Abtauung",
+			"761": "LIN-Verbindung unterbrochen",
+			"762": "Fühler Ansaug Verdichter",
+			"763": "Fühler Ansaug- Verdampfer",
+			"764": "Fühler Verdichterheizung",
+			"765": "Überhitzung",
+			"766": "Einsatzgrenzen-VD",
+			"767": "STB E-Stab",
+			"770": "Niedrige Überhitzung",
+			"771": "Hohe Überhitzung",
+			"776": "Einsatzgrenzen-VD",
+			"777": "Expansionsventil",
+			"778": "Fühler Niederdruck",
+			"779": "Fühler Hochdruck",
+			"780": "Fühler EVI",
+			"781": "Fühler Flüssig, vor Ex-Ventil",
+			"782": "Fühler EVI Sauggas",
+			"783": "Kommunikation SEC - Inverter",
+			"784": "VSS gesperrt",
+			"785": "SEC-Board defekt",
+			"786": "Kommunikation SEC - Inverter",
+			"787": "VD Alarm",
+			"788": "Schwerw. Inverter Fehler",
+			"789": "LIN/Kodierung nicht vorhanden",
+			"790": "Schwerw. Inverter Fehler",
+			"791": "ModBus Verbindung verloren",
+			"792": "LIN-Verbindung unterbrochen",
+			"793": "Schwerw. Inverter Fehler",
+		};
+
+		var rows = [];
+
+		document.getElementById('errorlog').addEventListener('change', function() {
+			var reader = new FileReader();
+
+			reader.onload = function() {
+				let buffer = reader.result;
+				let data = new DataView(buffer);
+
+				rows.forEach(function(e) {
+					e.remove()
+				})
+
+				let table = document.getElementById('table');
+				table.style.visibility = "visible";
+
+				for (var offset = 8; offset < buffer.byteLength; offset += 24) {
+					let timestamp = data.getUint32(offset, true);
+					let errorcode = data.getUint32(offset + 8, true);
+
+					let row = table.insertRow();
+
+					let cell1 = row.insertCell();
+					cell1.style.textAlign = "right";
+
+					let date = new Date(timestamp * 1000);
+					cell1.appendChild(document.createTextNode(date.toLocaleString()));
+
+					let cell2 = row.insertCell();
+					cell2.appendChild(document.createTextNode(errorCodeMapping[errorcode] + " (" + errorcode + ")"));
+
+					rows.push(row);
+				}
+			}
+
+			reader.readAsArrayBuffer(this.files[0]);
+		})
+	</script>
+</body>
+
+</html>
